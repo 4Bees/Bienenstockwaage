@@ -132,7 +132,7 @@ void loop()
   pfad.toCharArray(path,200);
   
   //TCP Client GET, send a GET request to the server and save the reply
-  inet.httpPOST("xxxxx.xxxxx.xx", xxxx, "/update", path, msg, 100);
+  inet.httpPOST("cloud.4bees.at", 3000, "/update", path, msg, 100);
   
   //Read for new byte on serial hardware, and write them on NewSoftSerial.
   serialhwread();
