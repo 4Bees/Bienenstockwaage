@@ -14,8 +14,8 @@
 Adafruit_AM2315 am2315;
 
 // ThingSpeak Settings
-char thingSpeakAddress[] = "xxxxx.xxxxxx.xxxx:xxxx";
-String writeAPIKey = "xxxxxxxxxxxxx";
+char thingSpeakAddress[] = "cloud.4Bees.at";
+String writeAPIKey = "XXXXXXXXXXXXXXXX";
 
 //HX711.DOUT    - pin #A1
 //HX711.PD_SCK  - pin #A0
@@ -31,6 +31,7 @@ float offset = 299.7;
 float scalefactor = 28075.5;
 
 const int powerLED = A2;
+const int resetLED = A3;
 
 InetGSM inet;
 
@@ -62,6 +63,7 @@ void setup()
   
   pinMode(powerLED, OUTPUT);
   
+  pinMode(resetLED, OUTPUT);
     
   Serial.begin(9600);
   scale.set_scale(scalefactor);                      //this value is obtained by calibrating the scale with known weights; 
@@ -74,6 +76,7 @@ void setup()
                                                   */
                                                   
   Serial.println("AM2315 Test!");
+   
 
   if (! am2315.begin()) {
      Serial.println("Sensor not found, check wiring & pullups!");
@@ -85,6 +88,8 @@ void setup()
 void loop()
 { 
   digitalWrite(powerLED, HIGH);
+  blinkLED(1, 500);
+ 
   powerUp();
   delay(10000);
   
@@ -95,6 +100,7 @@ void loop()
   Serial.println(floatGewicht);
   dtostrf(floatGewicht, 6, 2, charGewicht);
   stringGewicht = charGewicht;
+  
   scale.power_down();
   
   floatTemperature = am2315.readTemperature();
@@ -104,6 +110,8 @@ void loop()
   floatHumidity = am2315.readHumidity();
   dtostrf(floatHumidity, 6, 2, charHumidity);
   stringHumidity = charHumidity;
+  
+   blinkLED(2, 500);
   
   delay(1000);
    
@@ -117,9 +125,17 @@ void loop()
   //GPRS attach, put in order APN, useername and password.
   //If not neede auth left them blank.
   if (inet.attachGPRS("A1.net", "ppp@A1plus.at", "ppp"))
+  {
     Serial.println("status=ATTACHED");
-  else 
+     blinkLED(3, 500);
+    
+  }
+  else
+ { 
     Serial.println("status=ERROR APN Connection");
+     blinkLED(5, 250);
+    
+ }
   delay(1000);
   
   //Read IP address.
@@ -141,11 +157,22 @@ void loop()
   
   powerDown();
   
+   blinkLED(4, 500);
+  
   for (int minuten = 0; minuten < 58; minuten++) {
   delay(60500);
   }
   
 };
+
+void blinkLED(int numBlinks, int blinkRate) {
+  for (int j=0; j < numBlinks; j++) {
+    digitalWrite(resetLED, HIGH);   // sets the LED on
+    delay(blinkRate);                     // waits for blinkRate milliseconds
+    digitalWrite(resetLED, LOW);    // sets the LED off
+    delay(blinkRate);
+  }
+}
 
 void powerUp()
  { 
@@ -177,7 +204,8 @@ void serialhwread(){
     while (Serial.available() > 0) {
       inSerial[i]=(Serial.read());
       delay(10);
-      i++;      
+      i++; 
+   
     }
     
     inSerial[i]='\0';
@@ -207,4 +235,3 @@ void serialhwread(){
 void serialswread(){
   gsm.SimpleRead();
 }
-
